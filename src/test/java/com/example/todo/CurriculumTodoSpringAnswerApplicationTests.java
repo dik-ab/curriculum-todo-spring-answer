@@ -25,6 +25,11 @@ class CurriculumTodoSpringAnswerApplicationTests {
 
     @Test
     void todoCrudFlow() throws Exception {
+        mvc.perform(post("/todos")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"title\":\"" + "x".repeat(101) + "\"}"))
+            .andExpect(status().isBadRequest());
+
         String json = mvc.perform(post("/todos")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"title\":\"Write tests\"}"))
@@ -37,6 +42,19 @@ class CurriculumTodoSpringAnswerApplicationTests {
 
         long id = Long.parseLong(json.replaceAll(".*\"id\":(\\d+).*", "$1"));
 
+        Thread.sleep(5);
+
+        String newerJson = mvc.perform(post("/todos")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"title\":\"Review curriculum\"}"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.title", is("Review curriculum")))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        long newerId = Long.parseLong(newerJson.replaceAll(".*\"id\":(\\d+).*", "$1"));
+
         mvc.perform(patch("/todos/" + id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"completed\":true}"))
@@ -45,7 +63,11 @@ class CurriculumTodoSpringAnswerApplicationTests {
 
         mvc.perform(get("/todos"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].title", is("Write tests")));
+            .andExpect(jsonPath("$[0].title", is("Review curriculum")))
+            .andExpect(jsonPath("$[1].title", is("Write tests")));
+
+        mvc.perform(delete("/todos/" + newerId))
+            .andExpect(status().isNoContent());
 
         mvc.perform(delete("/todos/" + id))
             .andExpect(status().isNoContent());
