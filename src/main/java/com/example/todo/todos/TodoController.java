@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.List;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,7 +30,7 @@ public class TodoController {
 
     @GetMapping
     public List<Todo> findAll() {
-        return todos.findAll();
+        return todos.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
     @GetMapping("/{id}")
@@ -71,13 +72,13 @@ public class TodoController {
 
     public record CreateTodoRequest(
         @NotBlank
-        @Size(max = 120)
+        @Size(max = 100)
         String title
     ) {
     }
 
     public record UpdateTodoRequest(
-        @Size(max = 120)
+        @Size(max = 100)
         String title,
         Boolean completed
     ) {
